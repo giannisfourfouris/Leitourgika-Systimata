@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+ int pinakas[5];
+int counter =0;
  pthread_mutex_t lock;
  pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
  int tilefonites = 2; //diathesimoi tilefonites
@@ -14,6 +16,12 @@
  rc = pthread_cond_wait(&cond, &lock);
  }
  printf("O pelatis %d, eksipiretite.\n",id);
+ counter++;
+ if(pinakas[counter]==0 && counter<=5){
+printf("O pelatis %d,mphke sto pinaka sth thesi %d.\n",id,counter);
+}else{
+printf("O pelatis %d,phre poulo.\n",id);
+}
  tilefonites--;
  rc = pthread_mutex_unlock(&lock);
 
@@ -26,7 +34,13 @@
  rc = pthread_mutex_unlock(&lock);
  pthread_exit(NULL); //return
  }
+
+
  int main() {
+for (int i = 0; i < 5; i++) {
+ pinakas[i]=0;
+}
+
  int N = 10; int rc;
  pthread_t threads[N];
  int id[N];
