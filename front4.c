@@ -16,16 +16,19 @@ int counter =0;
  rc = pthread_cond_wait(&cond, &lock);
  }
  printf("O pelatis %d, eksipiretite.\n",id);
- counter++;
+ 
+ tilefonites--;
+ rc = pthread_mutex_unlock(&lock);
+
+ sleep(5); //kane kapoia douleia me ton tilefoniti
+rc = pthread_mutex_lock(&lock);
+counter++;
  if(pinakas[counter]==0 && counter<=5){
 printf("O pelatis %d,mphke sto pinaka sth thesi %d.\n",id,counter);
 }else{
 printf("O pelatis %d,phre poulo.\n",id);
 }
- tilefonites--;
- rc = pthread_mutex_unlock(&lock);
-
- sleep(5); //kane kapoia douleia me ton tilefoniti
+rc = pthread_mutex_unlock(&lock);
 
  rc = pthread_mutex_lock(&lock);
  printf("O pelatis %d eksipiretithike epitixos! \n", id);
@@ -46,7 +49,6 @@ for (int i = 0; i < 5; i++) {
  int id[N];
  pthread_mutex_init(&lock, NULL);
  for (int i = 0; i < N; i++) {
-
  id[i] = i+1;
  printf("Main: creating thread %d\n", i+1);
  rc = pthread_create(&threads[i], NULL, pelatis, id[i]);
