@@ -82,6 +82,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 	//edw elegxw an exei arketes kenes theseis
 	rc = pthread_mutex_lock(&lock);
+	sleep(1);
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
 			exit(-1);		
@@ -89,11 +90,11 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
         int checkIfSeatReserved=0;
  	int lastSeat=(counterSeat+randomTicketNumber);
 	for(int i=counterSeat; i<lastSeat;i++){
-		if(counterSeat>249){
+		if(counterSeat>250){
 			//elegxw an to theatro einai gemato 
 			printf("ID: %d To theatro einai gemato.",id);
 			break;	
-		}else if(249-counterSeat<randomTicketNumber){ 
+		}else if(250-counterSeat<randomTicketNumber){ 
 			//elegxw an exei arketes theseis
 			printf("ID: %d H krathsh mataiwthike giati den exei arketes diathesimes theseis\n.",id);
 			break;
@@ -122,8 +123,8 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			}
 			printf(" kai to kostos synalagis einai %d.\n",Cseat*randomTicketNumber);
 			counterSeat=lastSeat;
-			if(counterSeat==249){
-				counterSeat=250;
+			if(counterSeat==250){
+				counterSeat=251;
 			}
 	
 		}
