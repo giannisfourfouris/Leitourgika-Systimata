@@ -29,7 +29,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
  void *customer(void *x){
  	int id = (int *)x;
 	
- 	printf("Hello from pelati: %d\n",id);
+ 	//printf("Hello from pelati: %d\n",id);
  	rc = pthread_mutex_lock(&lock);
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
@@ -53,7 +53,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
     	}
 	//ypologizwi to xrono anamonis
         standByTime[id-1] = ( stopStandBy.tv_sec - startStandBy.tv_sec );
-        printf("Teleisa me wra Standby time: %d\n",standByTime[id-1]);
+        //printf("Teleisa me wra Standby time: %d\n",standByTime[id-1]);
 
 	//epilegei tuxaio arithmo thesewn
  	int randomTicketNumber=rand_r(&seed)%Nseathigh +Nseatlow;
@@ -69,7 +69,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
          }else{
 		randomWaitTime=rand +tseatlow;	
 	}
- 	printf("The random number of time to wait is: %d\n",randomWaitTime);
+ 	//printf("The random number of time to wait is: %d\n",randomWaitTime);
  	Ntel--;
 
  	rc = pthread_mutex_unlock(&lock);
@@ -98,7 +98,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			//elegxw an exei arketes theseis
 			printf("ID: %d H krathsh mataiwthike giati den exei arketes diathesimes theseis\n.",id);
 			break;
-		}else{
+		}else{  sleep(1);
 			//desmevw theseis
 			seatArray[i]=id;
 			checkIfSeatReserved=1;	
@@ -116,12 +116,15 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			
 	
 		}else{
+			//enimerwsi arithmou sinallagis
 			counterTransaction++;
-			printf("ID: %d h krathsh sas oloklrwthike epitexws. O arithmos sunalaghs einai %d. Oi theseis sas einai ",id,counterTransaction);
+			printf("ID: %d h krathsh sas oloklrwthike epitexws. O arithmos sunalaghs einai %d. Oi theseis sas einai: ",id,counterTransaction);
 			for(int i=counterSeat; i<lastSeat;i++){
 				printf("%d,  ",i+1);
 			}
 			printf(" kai to kostos synalagis einai %d.\n",Cseat*randomTicketNumber);
+			//enimerwsi tou logariasmou
+			account= account + (Cseat*randomTicketNumber);
 			counterSeat=lastSeat;
 			if(counterSeat==250){
 				counterSeat=251;
@@ -161,7 +164,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
       		exit( EXIT_FAILURE );
 	}
 	handlingTime[id-1] = ( stopHandlingTime.tv_sec - startHandlingTime.tv_sec );
-        printf("Teleisa me wra Handling time: %d\n",handlingTime[id-1]);
+       // printf("Teleisa me wra Handling time: %d\n",handlingTime[id-1]);
     	
 
 	 rc = pthread_mutex_unlock(&lock);
@@ -205,7 +208,7 @@ int main(int argc, char** argv) {
 
    	//arxikopoihsh pinaka 250 thesewn
 	for (int i = 0; i < 250; i++) {
-		seatArray[i] =02;
+		seatArray[i] =0;
 	}
        
 	//desmeysh mnhmhs gia ta threads
@@ -255,7 +258,7 @@ int main(int argc, char** argv) {
     		//printf("Main: creating thread %d\n", threadCount);
 		//arxikopoihsh threadId
 		threadId[threadCount] = threadCount + 1;
-		printf("Main: creating thread %d with id: %d\n", threadCount,threadId[threadCount]);
+		//printf("Main: creating thread %d with id: %d\n", threadCount,threadId[threadCount]);
 		/*dimiourgia tou thread, n allakse prin hello!!!!*/
     	        rc=pthread_create(&threads[threadCount],NULL,customer,threadId[threadCount]); 
 		//dhmioyrgia xronou anamonis/pelati kai xronoy kai xronou eksipiretisis/pelatis
@@ -291,8 +294,26 @@ int main(int argc, char** argv) {
 			exit(-1);		
 		}
 
-		printf("Main: Thread %d returned.\n", threadId[threadCount]);
+		//printf("Main: Thread %d returned.\n", threadId[threadCount]);
 	}
+        printf("Main: Gurisan ola ta thread!");
+	//emfanisi thesis kai pelati
+	for(int i=0;i<Nseat;i++){
+		
+		printf("Thesi %d- pelatis: %d \n",i+1,threadId[i]);
+	}
+	
+	double sumStandBy=0;
+	double sumHandling=0;
+	for(int i=0;i<Ncust;i++){
+		sumStandBy=sumStandBy+ standByTime[i];
+		sumHandling= sumHandling + handlingTime[i];
+	}
+	
+	printf("Ta sinolika esoda apo tis pwliseis einai: %d\n",account);
+	printf("O mesos xronos anamonis twn pelatwn einai: %lf \n",sumStandBy/Ncust);
+	printf("O mesos xronos eksipiretisis twn pelatwn einai: %lf \n",sumHandling/Ncust);
+
 
 
 
@@ -307,7 +328,7 @@ int main(int argc, char** argv) {
 
 return 0;
 
-
+//todo: id pelati me thesi, deuterolepta se lepta meta to 60, percentages,
 }
 
 
