@@ -23,8 +23,9 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 
 /**
- * H synartisi pou tha kaleite apo ta threads gia na typwnei to mynima 
- * Thread: Hello World from thread threadId
+ * H synartisi pou tha kaleite apo ta threads gia na 
+ * vlepei kai na apothikevei theseis, ypologisei arithmo sunalagwn kai
+ * prosthetei sto tamio ta leftta
 */
  void *customer(void *x){
  	int id = (int *)x;
@@ -57,7 +58,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 	//epilegei tuxaio arithmo thesewn
  	int randomTicketNumber=rand_r(&seed)%Nseathigh +Nseatlow;
- 	printf("The random number for ticket is: %d\n",randomTicketNumber);
+ 	//printf("The random number for ticket is: %d\n",randomTicketNumber);
 
 
 	//epilegei tuxaio xrono gia sleep
@@ -90,31 +91,44 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
         int checkIfSeatReserved=0;
  	int lastSeat=(counterSeat+randomTicketNumber);
 	for(int i=counterSeat; i<lastSeat;i++){
-		if(counterSeat>250){
+		if(counterSeat>Nseat){
 			//elegxw an to theatro einai gemato 
-			printf("ID: %d To theatro einai gemato.",id);
+			printf("ID: %d To theatro einai gemato.\n",id);
 			break;	
-		}else if(250-counterSeat<randomTicketNumber){ 
+		}else if(Nseat-counterSeat<randomTicketNumber){ 
 			//elegxw an exei arketes theseis
 			printf("ID: %d H krathsh mataiwthike giati den exei arketes diathesimes theseis\n.",id);
 			break;
-		}else{  sleep(1);
+		}else{ 
 			//desmevw theseis
 			seatArray[i]=id;
+			//printf("Eimai to seatArray i: %d kai eimai piasmenos apo to pelati %d \n",i,seatArray[i]);
 			checkIfSeatReserved=1;	
+			
 		}
  	}
+	rc = pthread_mutex_unlock(&lock);
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
+			exit(-1);		
+		}
 	//an desmefthkan theseis tote proxwraw sthn plhrwmh
+	//teleiwnw me to searching kai to kleisimo twn thesewn
+ 	rc = pthread_mutex_lock(&lock);
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
+			exit(-1);		
+		}
 	if(checkIfSeatReserved==1){
 		
 		if(id%10==0){
-			//elegxw an to h plhrwmh egine apodekth 
+			//elegxw an to h plhrwmh egine apodekth. An den egine apodekth tote ksedesmevw tis theseis.
 			printf("ID: %d h krathsh mataiwthike giati h pistwtikh karta den egine apodekth.\n",id);
 			for(int i=lastSeat-1; i>=counterSeat;i--){
 				seatArray[i]=0;
 			}
 			
-	
+				
 		}else{
 			//enimerwsi arithmou sinallagis
 			counterTransaction++;
@@ -125,8 +139,11 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			printf(" kai to kostos synalagis einai %d.\n",Cseat*randomTicketNumber);
 			//enimerwsi tou logariasmou
 			account= account + (Cseat*randomTicketNumber);
+			//enhmerwnw to counterSeat gia na kserw meta apo poia thesei toy pinaka exw kenes theseis
 			counterSeat=lastSeat;
-			if(counterSeat==250){
+			//se periptwsh pou einai gemato to theatro kanw to counterSeat kati megalytero
+			//wste sthn parapanv epanalhpsh na kserei oti einai gemato
+			if(counterSeat==Nseat){
 				counterSeat=251;
 			}
 	
@@ -137,19 +154,8 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 	
 
-	rc = pthread_mutex_unlock(&lock);
-	if (rc != 0) {
-			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
-			exit(-1);		
-		}
-	//teleiwnw me to searching gia theseis
+	
 
-
- 	rc = pthread_mutex_lock(&lock);
-	if (rc != 0) {
-			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
-			exit(-1);		
-		}
  	printf("O pelatis %d eksipiretithike epitixos! \n", id);
  	Ntel++;
  	rc = pthread_cond_signal(&cond);
@@ -296,23 +302,29 @@ int main(int argc, char** argv) {
 
 		//printf("Main: Thread %d returned.\n", threadId[threadCount]);
 	}
-        printf("Main: Gurisan ola ta thread!");
+        printf("Main: Gurisan ola ta thread!\n");
 	//emfanisi thesis kai pelati
-	for(int i=0;i<Nseat;i++){
+	//an to counter einai 251 dhladg olos o pinakas gematos
+	//tote to epanaferw 250 gia na einai entaksei to tupwma
+	if(counterSeat==251){
+		counterSeat=Nseat;
+	}
+	for(int i=0;i<counterSeat;i++){
 		
-		printf("Thesi %d- pelatis: %d \n",i+1,threadId[i]);
+		printf("Thesi %d- pelatis: %d \n",i+1,seatArray[i]);
 	}
 	
 	double sumStandBy=0;
 	double sumHandling=0;
+	
 	for(int i=0;i<Ncust;i++){
 		sumStandBy=sumStandBy+ standByTime[i];
 		sumHandling= sumHandling + handlingTime[i];
 	}
 	
-	printf("Ta sinolika esoda apo tis pwliseis einai: %d\n",account);
-	printf("O mesos xronos anamonis twn pelatwn einai: %lf \n",sumStandBy/Ncust);
-	printf("O mesos xronos eksipiretisis twn pelatwn einai: %lf \n",sumHandling/Ncust);
+	printf("Ta sinolika esoda apo tis pwliseis einai: %d$\n",account);
+	printf("O mesos xronos anamonis twn pelatwn einai: %lf sec\n",sumStandBy/Ncust);
+	printf("O mesos xronos eksipiretisis twn pelatwn einai: %lf sec\n",sumHandling/Ncust);
 
 
 
@@ -328,7 +340,7 @@ int main(int argc, char** argv) {
 
 return 0;
 
-//todo: id pelati me thesi, deuterolepta se lepta meta to 60, percentages,
+//todo:  percentages,
 }
 
 
