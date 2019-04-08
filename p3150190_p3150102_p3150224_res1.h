@@ -6,6 +6,6 @@ int Nseatlow=1;
 int Nseathigh=5; 
 int tseatlow=5;
 int tseathigh=10; 
-double Pcardsucces=0.9;
+int Pcardsucces=9;
 int Cseat=20;
 

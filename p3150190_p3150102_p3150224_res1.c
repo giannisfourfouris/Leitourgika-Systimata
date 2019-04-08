@@ -120,8 +120,12 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			exit(-1);		
 		}
 	if(checkIfSeatReserved==1){
-		
-		if(id%10==0){
+		//dhmiourgei tuxaious arithmous metaksi 1-10.	
+		//an aftos o arithmos<=9 tote kanei accept
+		//alliws kanei reject
+		int randomPercentage=rand_r(&seed)%10+1;
+		//printf("Eimai to random Perc: %d\n",randomPercentage);
+		if(randomPercentage>Pcardsucces){
 			//elegxw an to h plhrwmh egine apodekth. An den egine apodekth tote ksedesmevw tis theseis.
 			printf("ID: %d h krathsh mataiwthike giati h pistwtikh karta den egine apodekth.\n",id);
 			for(int i=lastSeat-1; i>=counterSeat;i--){
