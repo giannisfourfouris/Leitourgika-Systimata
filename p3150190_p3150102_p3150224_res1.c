@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
       
      Ncust=atoi(argv[1]);
      seed=atoi(argv[2]); 
-     printf("first argument: %d, seed einai: %d\n", Ncust,seed);
+     printf("Num of costumers: %d kai to seed einai: %d\n", Ncust,seed);
 
 	//xrisi malloc gia dimiourgia tou pinaka me megethos 250.
 	//desmeuoume sizeof(int) * 250 sti mnimi.
