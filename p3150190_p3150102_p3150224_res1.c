@@ -29,8 +29,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 */
  void *customer(void *x){
  	int id = (int *)x;
-	
- 	//printf("Hello from pelati: %d\n",id);
+	//mutex 1: koitaei gia diarthesimous thlefwnhtes
  	rc = pthread_mutex_lock(&lock);
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
@@ -38,29 +37,42 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 		}
 	//perimenei mexri na vrei diathesimo thlefwnhti
  	while (Ntel == 0) {
- 		printf("O pelatis %d, den brike diathesimo tilefoniti.Blocked...\n", id);
+ 		printf("Customer %d, didnt find avaliable Phone Operator.Blocked...\n", id);
  		rc = pthread_cond_wait(&cond, &lock);
 		if (rc != 0) {
 			printf("ERROR: return code from pthread_cond_wait is %d\n", rc);
 			exit(-1);		
 		}
  	}
- 	printf("O pelatis %d, eksipiretite.\n",id);
-       
+ 	printf("Costumer %d, is being served.\n",id);
+ 	//meiwnei to thlefwnhth kata 1
+	Ntel--;
+
+	rc = pthread_mutex_unlock(&lock);//telos mutex 1
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
+			exit(-1);		
+		}
+     	//mutex 2: upologismo xronou anamonis
+ 	rc = pthread_mutex_lock(&lock);
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
+			exit(-1);		
+		}
 	//teleiwnei to xrono anamonis	
 	if( clock_gettime( CLOCK_REALTIME, &stopStandBy) == -1 ) {
       		perror( "clock gettime" );
       		exit( EXIT_FAILURE );
     	}
-	//ypologizwi to xrono anamonis
+	//ypologizwi to xrono anamonis kai ton apothikevei sto pinaka StandBy
         standByTime[id-1] = ( stopStandBy.tv_sec - startStandBy.tv_sec );
-        //printf("Teleisa me wra Standby time: %d\n",standByTime[id-1]);
-
-	//epilegei tuxaio arithmo thesewn
- 	int randomTicketNumber=rand_r(&seed)%Nseathigh +Nseatlow;
- 	//printf("The random number for ticket is: %d\n",randomTicketNumber);
-
-
+       
+	rc = pthread_mutex_unlock(&lock);//telos mutex2 
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
+			exit(-1);		
+		}
+	
 	//epilegei tuxaio xrono gia sleep
  	int randomWaitTime;
 	int rand=rand_r(&seed)%tseathigh;
@@ -70,19 +82,14 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
          }else{
 		randomWaitTime=rand +tseatlow;	
 	}
- 	//printf("The random number of time to wait is: %d\n",randomWaitTime);
- 	Ntel--;
+ 	
 
- 	rc = pthread_mutex_unlock(&lock);
-	if (rc != 0) {
-			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
-			exit(-1);		
-		}
+ 	sleep(randomWaitTime); //perimenei gia tyxaio xrono apo 5-10 sec
 
- 	sleep(randomWaitTime); //kane kapoia douleia me ton tilefoniti perimenei gia tyxaio xrono apo 5-10 sec
-
-	//edw elegxw an exei arketes kenes theseis
+	//mutex 3:elegxos an exei arketes kenes theseis
 	rc = pthread_mutex_lock(&lock);
+	//epilegei tuxaio arithmo thesewn
+ 	int randomTicketNumber=rand_r(&seed)%Nseathigh +Nseatlow;	
 	sleep(1);
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
@@ -93,11 +100,11 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 	for(int i=counterSeat; i<lastSeat;i++){
 		if(counterSeat>Nseat){
 			//elegxw an to theatro einai gemato 
-			printf("ID: %d To theatro einai gemato.\n",id);
+			printf(" Customer ID: %d Reservation canceled.The theater is full.\n",id);
 			break;	
 		}else if(Nseat-counterSeat<randomTicketNumber){ 
 			//elegxw an exei arketes theseis
-			printf("ID: %d H krathsh mataiwthike giati den exei arketes diathesimes theseis\n.",id);
+			printf("Customer ID: %d Reservation canceled because there are not enough available seats\n.",id);
 			break;
 		}else{ 
 			//desmevw theseis
@@ -107,27 +114,28 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 			
 		}
  	}
-	rc = pthread_mutex_unlock(&lock);
+	rc = pthread_mutex_unlock(&lock);//telos mutex 3
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
 			exit(-1);		
 		}
 	//an desmefthkan theseis tote proxwraw sthn plhrwmh
 	//teleiwnw me to searching kai to kleisimo twn thesewn
- 	rc = pthread_mutex_lock(&lock);
+ 	rc = pthread_mutex_lock(&lock); //mutex 4: se periptwsh pou exei theseis enhmwrwsh account, arithmo sunalagis kai gia tipoma
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
 			exit(-1);		
 		}
+	//an exei desmeftei h thesh
 	if(checkIfSeatReserved==1){
 		//dhmiourgei tuxaious arithmous metaksi 1-10.	
 		//an aftos o arithmos<=9 tote kanei accept
 		//alliws kanei reject
 		int randomPercentage=rand_r(&seed)%10+1;
-		//printf("Eimai to random Perc: %d\n",randomPercentage);
-		if(randomPercentage>Pcardsucces){
+		//an einai megalytero toy Pcardsuccess kanw reject
+		if(randomPercentage>Pcardsuccess){
 			//elegxw an to h plhrwmh egine apodekth. An den egine apodekth tote ksedesmevw tis theseis.
-			printf("ID: %d h krathsh mataiwthike giati h pistwtikh karta den egine apodekth.\n",id);
+			printf("Customer ID: %d Transaction rejected because the credit card was declined.\n",id);
 			for(int i=lastSeat-1; i>=counterSeat;i--){
 				seatArray[i]=0;
 			}
@@ -136,17 +144,17 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 		}else{
 			//enimerwsi arithmou sinallagis
 			counterTransaction++;
-			printf("ID: %d h krathsh sas oloklrwthike epitexws. O arithmos sunalaghs einai %d. Oi theseis sas einai: ",id,counterTransaction);
+			printf("Customer ID: %d Successfuly Reserved. Your transaction id is %d, your seat numbers are: ",id,counterTransaction);
 			for(int i=counterSeat; i<lastSeat;i++){
 				printf("%d,  ",i+1);
 			}
-			printf(" kai to kostos synalagis einai %d.\n",Cseat*randomTicketNumber);
+			printf("and the total amount is %d.\n",Cseat*randomTicketNumber);
 			//enimerwsi tou logariasmou
 			account= account + (Cseat*randomTicketNumber);
 			//enhmerwnw to counterSeat gia na kserw meta apo poia thesei toy pinaka exw kenes theseis
 			counterSeat=lastSeat;
-			//se periptwsh pou einai gemato to theatro kanw to counterSeat kati megalytero
-			//wste sthn parapanv epanalhpsh na kserei oti einai gemato
+			//se periptwsh pou einai gemato to theatro auksanw to counterSeat 
+			//wste sthn epomenh epanalhpsh na kserei oti einai gemato
 			if(counterSeat==Nseat){
 				counterSeat=251;
 			}
@@ -160,30 +168,41 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 	
 
- 	printf("O pelatis %d eksipiretithike epitixos! \n", id);
+ 	printf("Customer %d successfuly served! \n", id);
  	Ntel++;
- 	rc = pthread_cond_signal(&cond);
+ 	rc = pthread_cond_signal(&cond); //stelnw to signal gia na parei kapoio allo thread seira
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_cond_signal is %d\n", rc);
 			exit(-1);		
 		}
-	
+
+	rc = pthread_mutex_unlock(&lock);//telos mutex 4
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
+			exit(-1);		
+		}
+
+	rc = pthread_mutex_lock(&lock); //mutex 5 gia handling time
+	if (rc != 0) {
+			printf("ERROR: return code from pthread_mutex_lock is %d\n", rc);
+			exit(-1);		
+		}
+
 	//ipologismos handling time
 	if( clock_gettime( CLOCK_REALTIME, &stopHandlingTime) == -1 ) {
       		perror( "clock gettime" );
       		exit( EXIT_FAILURE );
 	}
 	handlingTime[id-1] = ( stopHandlingTime.tv_sec - startHandlingTime.tv_sec );
-       // printf("Teleisa me wra Handling time: %d\n",handlingTime[id-1]);
+      
     	
 
-	 rc = pthread_mutex_unlock(&lock);
+	rc = pthread_mutex_unlock(&lock);//telos mutex 5
 	if (rc != 0) {
 			printf("ERROR: return code from pthread_mutex_unlock is %d\n", rc);
 			exit(-1);		
 		}
-	/*aparaitito gia na gnwrizei o pateras oti to thread termatise swsta,
-	douleuei swsta kai an kanete return kapoia timi.*/
+	/*aparaitito gia na gnwrizei o pateras oti to thread termatise swsta*/
  	pthread_exit(id); //return
  }
 
@@ -204,9 +223,9 @@ int main(int argc, char** argv) {
       
      Ncust=atoi(argv[1]);
      seed=atoi(argv[2]); 
-     printf("Num of costumers: %d kai to seed einai: %d\n", Ncust,seed);
+     printf("Num of costumers: %d Seed : %d\n", Ncust,seed);
 
-	//xrisi malloc gia dimiourgia tou pinaka me megethos 250.
+	//xrisi malloc gia dimiourgia tou pinaka me megethos 250 gia tis theseis.
 	//desmeuoume sizeof(int) * 250 sti mnimi.
 	seatArray = (int *) malloc(sizeof(int) * 250);
 
@@ -230,7 +249,7 @@ int main(int argc, char** argv) {
 
       
    	
-       //xrisi malloc gia dimiourgia tou pinaka me megethos Ncust.
+        //xrisi malloc gia dimiourgia tou pinaka me megethos Ncust gia to id.
 	//desmeuoume sizeof(int) * Ncust sti mnimi.
 	threadId = (int *) malloc(sizeof(int) * Ncust);
 
@@ -240,7 +259,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	//xrisi malloc gia dimiourgia tou pinaka me megethos Ncust.
+	//xrisi malloc gia dimiourgia tou pinaka me megethos Ncust gia xrono anamonis.
 	//desmeuoume sizeof(int) * Ncust sti mnimi.
 	standByTime = (int *) malloc(sizeof(int) * Ncust);
 
@@ -250,7 +269,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	//xrisi malloc gia dimiourgia tou pinaka me megethos Ncust.
+	//xrisi malloc gia dimiourgia tou pinaka me megethos Ncust gia xrono eksuphrethshs.
 	//desmeuoume sizeof(int) * Ncust sti mnimi.
 	handlingTime = (int *) malloc(sizeof(int) * Ncust);
 
@@ -260,18 +279,22 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-        //arxikopoihsh lock
+        //arxikopoihsh tou mutex lock
         pthread_mutex_init(&lock, NULL);
 
-	//create threads
+	//Arxikopoihsh threads
    	for(int threadCount = 0; threadCount < Ncust; threadCount++) {
-    		//printf("Main: creating thread %d\n", threadCount);
+    		
 		//arxikopoihsh threadId
 		threadId[threadCount] = threadCount + 1;
-		//printf("Main: creating thread %d with id: %d\n", threadCount,threadId[threadCount]);
-		/*dimiourgia tou thread, n allakse prin hello!!!!*/
-    	        rc=pthread_create(&threads[threadCount],NULL,customer,threadId[threadCount]); 
-		//dhmioyrgia xronou anamonis/pelati kai xronoy kai xronou eksipiretisis/pelatis
+		//status gia create threads
+		rc=pthread_create(&threads[threadCount],NULL,customer,threadId[threadCount]); 
+		/*elegxos oti to thread dimiourgithike swsta.*/
+    		if (rc != 0) {
+    			printf("ERROR: return code from pthread_create() is %d\n", rc);
+       			exit(-1);
+       		}
+		//arxikopoihsh xronou anamonis ana pelati kai xronoy kai xronou eksipiretisis ana pelati
 		handlingTime[threadCount]=0;
 		standByTime[threadCount]=0;
 		
@@ -286,17 +309,12 @@ int main(int argc, char** argv) {
     		  perror( "clock gettime" );
      		 exit( EXIT_FAILURE );
    		 }
-		/*elegxos oti to thread dimiourgithike swsta.*/
-    		if (rc != 0) {
-    			printf("ERROR: return code from pthread_create() is %d\n", rc);
-       			exit(-1);
-       		}
+		
     	}
 
-       /*Aparaitito gia na stamatisei to thread, an den to orisete yparxei
-	periptwsi na teleiwsei o pateras prin ta threads kai ara na min exoume
-	to epithymito apotelesma*/
+       	//ksekinima olwn twn threads me xrhsh join
 	for (int threadCount = 0; threadCount < Ncust; threadCount++) {
+		//status gia join
 		rc = pthread_join(threads[threadCount], NULL);
 		
 		if (rc != 0) {
@@ -304,9 +322,8 @@ int main(int argc, char** argv) {
 			exit(-1);		
 		}
 
-		//printf("Main: Thread %d returned.\n", threadId[threadCount]);
 	}
-        printf("Main: Gurisan ola ta thread!\n");
+        printf("Main: All threads successfuly return!\n");
 	//emfanisi thesis kai pelati
 	//an to counter einai 251 dhladg olos o pinakas gematos
 	//tote to epanaferw 250 gia na einai entaksei to tupwma
@@ -315,20 +332,20 @@ int main(int argc, char** argv) {
 	}
 	for(int i=0;i<counterSeat;i++){
 		
-		printf("Thesi %d- pelatis: %d \n",i+1,seatArray[i]);
+		printf("Seat no%d - Customer id: %d \n",i+1,seatArray[i]);
 	}
-	
+	//arxikopoihsh duo metavlhtwn gia ypologismo mesoy xronou anamonis kai eksyphrethshs
 	double sumStandBy=0;
 	double sumHandling=0;
-	
+	//athroizw olous toys xronoys
 	for(int i=0;i<Ncust;i++){
 		sumStandBy=sumStandBy+ standByTime[i];
 		sumHandling= sumHandling + handlingTime[i];
 	}
 	
-	printf("Ta sinolika esoda apo tis pwliseis einai: %d$\n",account);
-	printf("O mesos xronos anamonis twn pelatwn einai: %lf sec\n",sumStandBy/Ncust);
-	printf("O mesos xronos eksipiretisis twn pelatwn einai: %lf sec\n",sumHandling/Ncust);
+	printf("Total Profit : %d$\n",account);
+	printf("Average Stand By Time Per Customer: %lf sec\n",sumStandBy/Ncust);
+	printf("Average Handling Time Per Customer: %lf sec\n",sumHandling/Ncust);
 
 
 
